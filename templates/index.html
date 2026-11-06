@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeBeats Studio - Estación de Composición</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .tutorial-highlight {
+      outline: 2px solid #2563eb !important;
+      outline-offset: 3px;
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.25) !important;
+    }
+    textarea::-webkit-scrollbar {
+      width: 6px;
+    }
+    textarea::-webkit-scrollbar-track {
+      background: #f8fafc;
+    }
+    textarea::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="bg-[#fcfcfd] text-slate-800 font-sans min-h-screen flex flex-col justify-between selection:bg-blue-500 selection:text-white">
+
+  <!-- BARRA SUPERIOR LIMPIA Y PROFESIONAL -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+    <div class="max-w-7xl mx-auto px-8 py-4 flex flex-col lg:flex-row items-center justify-between gap-4">
+      
+      <!-- Logo y Título -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+          ♫
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-slate-900">CodeBeats Studio</h1>
+          <p class="text-xs text-slate-500 font-medium">Estudio de Composición Algorítmica</p>
+        </div>
+      </div>
+
+      <!-- Controles Principales -->
+      <div class="flex flex-wrap items-center gap-3 bg-slate-100 px-4 py-2 rounded-xl border border-slate-200">
+        
+        <!-- Botón Reproducir / Detener -->
+        <button id="btnPlay" onclick="togglePlay()" class="bg-slate-900 hover:bg-slate-800 text-white font-medium px-5 py-2 rounded-lg transition-all flex items-center gap-2 text-xs active:scale-95 shadow-xs">
+          <span id="playIcon">▶</span> <span id="playText">Reproducir</span>
+        </button>
+
+        <!-- Botón de Grabación -->
+        <button id="btnRecord" onclick="toggleRecord()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-xs active:scale-95 shadow-xs">
+          <span id="recordDot" class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+          <span id="recordText">Grabar Audio</span>
+        </button>
+
+        <div class="h-4 w-px bg-slate-300"></div>
+
+        <!-- Selector de Estilos -->
+        <div class="flex items-center gap-2">
+          <label for="soundPreset" class="text-xs font-semibold text-slate-600">Estilo:</label>
+          <select id="soundPreset" onchange="cambiarEstiloPreset()" class="bg-white border border-slate-300 text-slate-700 font-medium text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-slate-500 cursor-pointer shadow-xs">
+            <option value="" disabled selected>-- Seleccionar Estilo --</option>
+            <option value="fifa">⚽ EA FIFA Electro (130 BPM)</option>
+            <option value="cyberpunk">🌆 Cyberpunk Synth (145 BPM)</option>
+            <option value="chiptune">🕹️ Chiptune 8-Bit (150 BPM)</option>
+            <option value="lofi">☕ Lo-Fi Relax (85 BPM)</option>
+          </select>
+        </div>
+
+        <div class="h-4 w-px bg-slate-300"></div>
+
+        <!-- BPM -->
+        <div class="flex items-center gap-1.5">
+          <label for="bpm" class="text-xs font-semibold text-slate-600">BPM:</label>
+          <input type="number" id="bpm" value="130" min="60" max="200" onchange="updateBPM()" class="bg-white border border-slate-300 text-slate-800 font-mono font-bold text-xs rounded-lg px-2 py-1 w-14 text-center focus:outline-none focus:border-slate-500 shadow-xs">
+        </div>
+
+        <div class="h-4 w-px bg-slate-300"></div>
+
+        <!-- Guía Tutorial -->
+        <button onclick="iniciarTutorialInteractivo()" class="text-xs font-medium bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-1.5 rounded-lg transition shadow-xs">
+          Guía
+        </button>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- PANEL PRINCIPAL ESPACIOSO -->
+  <main class="max-w-7xl mx-auto px-8 py-8 w-full space-y-8">
+
+    <!-- LIBRERÍA DE +40 INSTRUMENTOS ACTIVA -->
+    <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            Librería de Instrumentos <span class="text-[10px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">+40 Sonidos Integrados</span>
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">El instrumento seleccionado modificará el timbre de la melodía principal en tiempo real</p>
+        </div>
+        
+        <select id="instrumentSelect" class="bg-slate-50 border border-slate-300 text-slate-800 font-medium text-xs rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500 cursor-pointer shadow-xs">
+          <optgroup label="Sintetizadores & Teclados (10)">
+            <option value="synth_lead">Synth Lead-01</option>
+            <option value="synth_brass">Synth Brass Expressive</option>
+            <option value="piano_grand">Grand Piano Clásico</option>
+            <option value="piano_electric">Electric Piano Rhodes</option>
+            <option value="organ_hammond">Órgano Hammond B3</option>
+            <option value="synth_pluck">Pluck Sintético Agudo</option>
+            <option value="synth_saw">Sawtooth Synth Potente</option>
+            <option value="synth_square">Square Lead 80s</option>
+            <option value="piano_upright">Upright Piano Acústico</option>
+            <option value="harpsichord">Clavecín Antiguo</option>
+          </optgroup>
+          <optgroup label="Bajos & Graves (8)">
+            <option value="bass_sub">Sub Bass Profundo</option>
+            <option value="bass_synth">Synth Bass Electro</option>
+            <option value="bass_slap">Slap Bass Funcional</option>
+            <option value="bass_acoustic">Bajo Acústico / Contrabajo</option>
+            <option value="bass_dist">Bajo Distorsionado Cyber</option>
+            <option value="bass_808">808 Bass Hip-Hop</option>
+            <option value="bass_acid">TB-303 Acid Bass</option>
+            <option value="bass_fretless">Fretless Bass Suave</option>
+          </optgroup>
+          <optgroup label="Percusión & Baterías (10)">
+            <option value="drum_kick_909">TR-909 Kick Heavy</option>
+            <option value="drum_kick_808">TR-808 Kick Deep</option>
+            <option value="drum_snare_acoustic">Caja / Snare Acústica</option>
+            <option value="drum_hihat_closed">Hi-Hat Cerrado Metal</option>
+            <option value="drum_hihat_open">Hi-Hat Abierto Solo</option>
+            <option value="drum_tom_floor">Tom Grave de Piso</option>
+            <option value="drum_crash_cymbal">Platillo Crash FX</option>
+            <option value="perch_conga">Congas / Percusión Latina</option>
+            <option value="perch_clap">Clap de Estudio Handclap</option>
+            <option value="perch_rimshot">Rimshot Seco</option>
+          </optgroup>
+          <optgroup label="Efectos & Arcade Games (12)">
+            <option value="fx_8bit_laser">Laser Shot 8-Bit</option>
+            <option value="fx_coin_collect">Moneda Arcade Coin</option>
+            <option value="fx_powerup">PowerUp Retro Sound</option>
+            <option value="fx_fifa_whistle">Silbato FIFA Match</option>
+            <option value="fx_stadium_cheer">Ovación de Estadio</option>
+            <option value="fx_cyber_glitch">Glitch Digital FX</option>
+            <option value="fx_ambient_pad">Pad Cósmico Ambient</option>
+            <option value="fx_vinyl_crackle">Ruido de Vinilo Lo-Fi</option>
+            <option value="fx_explosion">Explosión Arcade retro</option>
+            <option value="fx_jump_sound">Salto de Plataforma</option>
+            <option value="fx_gameover">Game Over Retro Tune</option>
+            <option value="fx_bell_chime">Campana Cristalina Chime</option>
+          </optgroup>
+        </select>
+      </div>
+    </section>
+
+    <!-- 4 PISTAS DE CÓDIGO -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- CANAL 1: MELODÍA -->
+      <div id="card-melodia" class="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between shadow-xs space-y-4">
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-xs tracking-wider text-slate-700 uppercase flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span> 1. Melodía Principal
+            </h3>
+            <button id="btn-probar-melodia" onclick="cargarEjemplo('melodia')" class="text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded-lg transition">Cargar Código</button>
+          </div>
+          <textarea id="code-melodia" class="w-full h-44 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-mono text-slate-800 focus:outline-none focus:border-blue-500 resize-none shadow-xs" placeholder="// Pega aquí tu código de melodía..."></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+          <label class="flex items-center gap-2 text-xs font-medium text-slate-600 cursor-pointer">
+            <input type="checkbox" id="mute-melodia" class="accent-blue-600 rounded"> Silenciar
+          </label>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400">Vol</span>
+            <input type="range" id="vol-melodia" min="0" max="1" step="0.05" value="0.8" class="w-20 accent-blue-600 cursor-pointer">
+          </div>
+        </div>
+      </div>
+
+      <!-- CANAL 2: BAJO -->
+      <div id="card-bajo" class="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between shadow-xs space-y-4">
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-xs tracking-wider text-slate-700 uppercase flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-700"></span> 2. Línea de Bajo
+            </h3>
+            <button onclick="cargarEjemplo('bajo')" class="text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded-lg transition">Cargar Código</button>
+          </div>
+          <textarea id="code-bajo" class="w-full h-44 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-mono text-slate-800 focus:outline-none focus:border-blue-500 resize-none shadow-xs" placeholder="# Pega código de bajo aquí..."></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+          <label class="flex items-center gap-2 text-xs font-medium text-slate-600 cursor-pointer">
+            <input type="checkbox" id="mute-bajo" class="accent-slate-700 rounded"> Silenciar
+          </label>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400">Vol</span>
+            <input type="range" id="vol-bajo" min="0" max="1" step="0.05" value="0.9" class="w-20 accent-slate-700 cursor-pointer">
+          </div>
+        </div>
+      </div>
+
+      <!-- CANAL 3: PERCUSIÓN -->
+      <div id="card-ritmo" class="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between shadow-xs space-y-4">
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-xs tracking-wider text-slate-700 uppercase flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span> 3. Batería / Ritmo
+            </h3>
+            <button onclick="cargarEjemplo('ritmo')" class="text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded-lg transition">Cargar Código</button>
+          </div>
+          <textarea id="code-ritmo" class="w-full h-44 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-mono text-slate-800 focus:outline-none focus:border-blue-500 resize-none shadow-xs" placeholder="<!-- Pega HTML o CSS aquí... -->"></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+          <label class="flex items-center gap-2 text-xs font-medium text-slate-600 cursor-pointer">
+            <input type="checkbox" id="mute-ritmo" class="accent-slate-500 rounded"> Silenciar
+          </label>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400">Vol</span>
+            <input type="range" id="vol-ritmo" min="0" max="1" step="0.05" value="0.8" class="w-20 accent-slate-500 cursor-pointer">
+          </div>
+        </div>
+      </div>
+
+      <!-- CANAL 4: AMBIENTE -->
+      <div id="card-ambiente" class="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between shadow-xs space-y-4">
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-xs tracking-wider text-slate-700 uppercase flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span> 4. Sintetizador Pad
+            </h3>
+            <button onclick="cargarEjemplo('ambiente')" class="text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded-lg transition">Cargar Código</button>
+          </div>
+          <textarea id="code-ambiente" class="w-full h-44 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-mono text-slate-800 focus:outline-none focus:border-blue-500 resize-none shadow-xs" placeholder="// Pega JSON o SQL aquí..."></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+          <label class="flex items-center gap-2 text-xs font-medium text-slate-600 cursor-pointer">
+            <input type="checkbox" id="mute-ambiente" class="accent-slate-400 rounded"> Silenciar
+          </label>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400">Vol</span>
+            <input type="range" id="vol-ambiente" min="0" max="1" step="0.05" value="0.7" class="w-20 accent-slate-400 cursor-pointer">
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-4 px-8">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="text-xs text-slate-500 font-medium">
+        CodeBeats Studio &copy; 2026 — Optimizado y sin lag
+      </div>
+      <div class="w-full md:w-80 h-10 bg-slate-50 border border-slate-200 rounded-lg overflow-hidden shadow-2xs">
+        <canvas id="visualizerCanvas" class="w-full h-full"></canvas>
+      </div>
+    </div>
+  </footer>
+
+  <!-- GUÍA TUTORIAL -->
+  <div id="tutorial-card" class="fixed bottom-16 right-8 bg-white border border-slate-300 text-slate-800 p-5 rounded-2xl shadow-xl max-w-sm z-50 hidden transition-all duration-300">
+    <div class="flex items-start gap-3">
+      <div class="text-xl text-blue-600 select-none">💡</div>
+      <div>
+        <h4 id="tutorial-title" class="font-bold text-slate-900 text-xs">Guía Interactiva</h4>
+        <p id="tutorial-text" class="text-xs text-slate-600 mt-1 leading-relaxed">Sigue los pasos en pantalla...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOTOR DE AUDIO CONECTADO A LA LIBRERÍA DE +40 INSTRUMENTOS -->
+  <script>
+    let audioCtx = null;
+    let destNode = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let isRecording = false;
+
+    let isPlaying = false;
+    let timerId = null;
+    let step = 0;
+    let bpm = 130;
+    let stepTutorial = 0;
+
+    const presets = {
+      fifa: { bpm: 130, melodyNotes: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25] },
+      cyberpunk: { bpm: 145, melodyNotes: [220.00, 233.08, 261.63, 293.66, 311.13, 349.23] },
+      chiptune: { bpm: 150, melodyNotes: [523.25, 587.33, 659.25, 783.99, 880.00] },
+      lofi: { bpm: 85, melodyNotes: [196.00, 220.00, 261.63, 293.66, 329.63] }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initCanvas();
+      if (!localStorage.getItem('codebeats_studio_clean_v3')) {
+        iniciarTutorialInteractivo();
+      }
+    });
+
+    function iniciarTutorialInteractivo() {
+      stepTutorial = 1;
+      document.getElementById('tutorial-card').classList.remove('hidden');
+      actualizarTutorial();
+    }
+
+    function actualizarTutorial() {
+      document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
+
+      const title = document.getElementById('tutorial-title');
+      const text = document.getElementById('tutorial-text');
+
+      if (stepTutorial === 1) {
+        title.innerText = "1. Selecciona un Estilo de Audio";
+        text.innerText = "Haz clic en el menú superior y elige EA FIFA Electro.";
+        document.getElementById('soundPreset').classList.add('tutorial-highlight');
+      } else if (stepTutorial === 2) {
+        title.innerText = "2. Carga la Canción de FIFA";
+        text.innerText = "Haz clic en 'Cargar Código' en la casilla de Melodía.";
+        document.getElementById('btn-probar-melodia').classList.add('tutorial-highlight');
+      } else if (stepTutorial === 3) {
+        title.innerText = "3. ¡Reproduce!";
+        text.innerText = "Presiona '▶ Reproducir' para escuchar el ritmo.";
+        document.getElementById('btnPlay').classList.add('tutorial-highlight');
+      } else {
+        document.getElementById('tutorial-card').classList.add('hidden');
+        localStorage.setItem('codebeats_studio_clean_v3', 'true');
+      }
+    }
+
+    function cambiarEstiloPreset() {
+      const presetKey = document.getElementById('soundPreset').value;
+      if (presets[presetKey]) {
+        document.getElementById('bpm').value = presets[presetKey].bpm;
+        updateBPM();
+      }
+      if (stepTutorial === 1) {
+        stepTutorial = 2;
+        actualizarTutorial();
+      }
+    }
+
+    // CARGAR CÓDIGO DE LA CANCIÓN DE FIFA
+    function cargarEjemplo(canal) {
+      if (canal === 'melodia') {
+        document.getElementById('code-melodia').value = "def ritmo_electro_fifa():\n    notas = ['E5', 'G5', 'A5', 'B5', 'D6']\n    for n in notas:\n        print(f'Reproduciendo {n}')";
+        if (stepTutorial === 2) {
+          stepTutorial = 3;
+          actualizarTutorial();
+        }
+      } else if (canal === 'bajo') {
+        document.getElementById('code-bajo').value = "class BajoFIFA:\n    def __init__(self):\n        self.secuencia = [65.41, 87.31, 98.00]";
+      } else if (canal === 'ritmo') {
+        document.getElementById('code-ritmo').value = "<div class='bateria-fifa'>\n  <kick>909</kick>\n  <snare>active</snare>\n</div>";
+      } else if (canal === 'ambiente') {
+        document.getElementById('code-ambiente').value = "{\n  \"estadio\": \"FIFA_Match\",\n  \"eco\": true\n}";
+      }
+    }
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        destNode = audioCtx.createMediaStreamDestination();
+      }
+    }
+
+    function toggleRecord() {
+      initAudio();
+      if (!isRecording) {
+        recordedChunks = [];
+        mediaRecorder = new MediaRecorder(destNode.stream);
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = 'cancion_fifa.webm';
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 100);
+        };
+        mediaRecorder.start();
+        isRecording = true;
+        document.getElementById('recordText').innerText = "Guardando...";
+        document.getElementById('recordDot').classList.replace('bg-rose-500', 'bg-blue-600');
+      } else {
+        mediaRecorder.stop();
+        isRecording = false;
+        document.getElementById('recordText').innerText = "Grabar Audio";
+        document.getElementById('recordDot').classList.replace('bg-blue-600', 'bg-rose-500');
+      }
+    }
+
+    function togglePlay() {
+      const presetKey = document.getElementById('soundPreset').value;
+      if (!presetKey) {
+        alert("¡Selecciona primero el estilo EA FIFA Electro en el menú superior!");
+        return;
+      }
+
+      initAudio();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      isPlaying = !isPlaying;
+      const btn = document.getElementById('btnPlay');
+
+      if (isPlaying) {
+        document.getElementById('playIcon').innerText = '⏸';
+        document.getElementById('playText').innerText = 'Detener';
+        btn.classList.replace('bg-slate-900', 'bg-rose-600');
+        step = 0;
+        scheduleNextStep();
+
+        if (stepTutorial === 3) {
+          stepTutorial = 4;
+          actualizarTutorial();
+        }
+      } else {
+        document.getElementById('playIcon').innerText = '▶';
+        document.getElementById('playText').innerText = 'Reproducir';
+        btn.classList.replace('bg-rose-600', 'bg-slate-900');
+        clearTimeout(timerId);
+      }
+    }
+
+    function updateBPM() {
+      bpm = parseInt(document.getElementById('bpm').value) || 130;
+    }
+
+    function scheduleNextStep() {
+      if (!isPlaying) return;
+      playStep(step);
+      step = (step + 1) % 16;
+      const interval = (60 / bpm / 4) * 1000;
+      timerId = setTimeout(scheduleNextStep, interval);
+    }
+
+    // MAPEA CUALQUIER INSTRUMENTO DE LAS 40 OPCIONES A LA ONDA DE AUDIO CORRECTA
+    function getInstrumentWave(instrumentId) {
+      if (instrumentId.includes('saw') || instrumentId.includes('brass') || instrumentId.includes('bass_dist')) return 'sawtooth';
+      if (instrumentId.includes('square') || instrumentId.includes('8bit') || instrumentId.includes('coin')) return 'square';
+      if (instrumentId.includes('piano') || instrumentId.includes('organ') || instrumentId.includes('pluck') || instrumentId.includes('bell')) return 'triangle';
+      return 'sine'; // Por defecto suave
+    }
+
+    function playStep(currentStep) {
+      const presetKey = document.getElementById('soundPreset').value;
+      const currentPreset = presets[presetKey] || presets.fifa;
+      const selectedInstrument = document.getElementById('instrumentSelect').value;
+      const waveType = getInstrumentWave(selectedInstrument);
+
+      triggerVisualizerPulse();
+
+      // 1. Melodía principal usando el instrumento seleccionado de la librería
+      if (!document.getElementById('mute-melodia').checked) {
+        const code = document.getElementById('code-melodia').value;
+        const vol = parseFloat(document.getElementById('vol-melodia').value);
+        if (code.length > 0) {
+          const charCode = code.charCodeAt(currentStep % code.length) || 0;
+          if (charCode % 3 !== 0) {
+            playSynthNote(currentPreset.melodyNotes[charCode % currentPreset.melodyNotes.length], waveType, 0.15, vol * 0.18);
+          }
+        }
+      }
+
+      // 2. Línea de bajo
+      if (!document.getElementById('mute-bajo').checked) {
+        const code = document.getElementById('code-bajo').value;
+        const vol = parseFloat(document.getElementById('vol-bajo').value);
+        if (code.length > 0 && currentStep % 2 === 0) {
+          playSynthNote(65.41, 'sawtooth', 0.25, vol * 0.25);
+        }
+      }
+
+      // 3. Percusión / Batería
+      if (!document.getElementById('mute-ritmo').checked) {
+        const code = document.getElementById('code-ritmo').value;
+        const vol = parseFloat(document.getElementById('vol-ritmo').value);
+        if (code.length > 0) {
+          if (currentStep % 4 === 0) playKick(130, vol);
+          if (currentStep % 4 === 2) playSnare(vol * 0.2);
+        }
+      }
+
+      // 4. Ambiente / Pad
+      if (!document.getElementById('mute-ambiente').checked) {
+        const code = document.getElementById('code-ambiente').value;
+        const vol = parseFloat(document.getElementById('vol-ambiente').value);
+        if (code.length > 0 && currentStep % 4 === 0) {
+          playSynthNote(196.00, 'sine', 0.4, vol * 0.08);
+        }
+      }
+    }
+
+    function playSynthNote(freq, type, duration, gainVal) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      if (destNode) gain.connect(destNode);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function playKick(startFreq, gainVal) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.setValueAtTime(startFreq, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+      gain.gain.setValueAtTime(gainVal * 0.4, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      if (destNode) gain.connect(destNode);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.12);
+    }
+
+    function playSnare(gainVal) {
+      const node = audioCtx.createBufferSource();
+      const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.1, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < buffer.length; i++) data[i] = Math.random() * 2 - 1;
+      node.buffer = buffer;
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+      node.connect(gain);
+      gain.connect(audioCtx.destination);
+      if (destNode) gain.connect(destNode);
+      node.start();
+    }
+
+    let canvas, ctx;
+    function initCanvas() {
+      canvas = document.getElementById('visualizerCanvas');
+      ctx = canvas.getContext('2d');
+    }
+
+    function triggerVisualizerPulse() {
+      if (!ctx) return;
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      
+      const bars = 12;
+      const barWidth = w / bars;
+      for (let i = 0; i < bars; i++) {
+        const barHeight = Math.random() * h * 0.7 + 2;
+        ctx.fillStyle = '#2563eb';
+        ctx.fillRect(i * barWidth, h - barHeight, barWidth - 3, barHeight);
+      }
+    }
+  </script>
+</body>
+</html>
